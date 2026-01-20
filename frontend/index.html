@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CYH Terminal - Professional security terminal by CanYouHack">
+    <meta name="theme-color" content="#7FFF00">
+    <title>CYH Terminal | CanYouHack</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Xterm.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.8.0/lib/xterm-addon-web-links.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <!-- CYH Terminal Icon -->
+                    <div class="logo-icon">
+                        <img src="favicon.ico" alt="CYH" style="width: 28px; height: 28px; object-fit: contain;">
+                    </div>
+                    <div class="logo-text-container">
+                        <span class="logo-text">CanYouHack</span>
+                        <span class="logo-divider">|</span>
+                        <span class="logo-subtitle">Terminal</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- Terminal Mode Selection -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Terminal Mode</div>
+                    <div class="mode-selector" id="modeSelector">
+                        <button class="mode-btn active" data-mode="local" id="localModeBtn">
+                            <span class="mode-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="18" rx="2" />
+                                    <path d="M6 8l4 4-4 4M12 16h6" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <div class="mode-info">
+                                <span class="mode-name">CYH Local</span>
+                                <span class="mode-desc">Local shell</span>
+                            </div>
+                            <span class="mode-status available"></span>
+                        </button>
+                        <button class="mode-btn" data-mode="docker" id="dockerModeBtn">
+                            <span class="mode-icon">
+                                <!-- CYH Logo -->
+                                <img src="https://canyouhack.org/logo.png" alt="CYH" width="24" height="24"
+                                    style="border-radius: 4px; object-fit: contain;">
+                            </span>
+                            <div class="mode-info">
+                                <span class="mode-name">CYH Hacking</span>
+                                <span class="mode-desc" id="dockerStatus">Checking...</span>
+                            </div>
+                            <span class="mode-status" id="dockerStatusDot"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Command History (Collapsible) -->
+                <div class="nav-section collapsible" id="historySection">
+                    <div class="nav-section-title section-toggle" onclick="toggleSection('historySection')">
+                        <div class="section-title-left">
+                            <svg class="collapse-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span>Command History</span>
+                        </div>
+                        <button class="btn-icon" title="Clear history"
+                            onclick="event.stopPropagation(); clearCommandHistory()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div id="commandHistoryList" class="history-list">
+                            <div class="no-history">No commands yet</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container Management (Collapsible) -->
+                <div class="nav-section collapsible collapsed" id="containerSection">
+                    <div class="nav-section-title section-toggle" onclick="toggleSection('containerSection')">
+                        <div class="section-title-left">
+                            <svg class="collapse-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span>Containers</span>
+                        </div>
+                        <button class="btn-icon" id="refreshContainersBtn" title="Refresh containers"
+                            onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div id="containerList" class="container-list">
+                            <div class="container-loading">Loading containers...</div>
+                        </div>
+                        <button class="btn-new-container" id="newContainerBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            New Container
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Docker Controls (Collapsible) -->
+                <div class="nav-section collapsible collapsed" id="dockerControls" style="display: none;">
+                    <div class="nav-section-title section-toggle" onclick="toggleSection('dockerControls')">
+                        <div class="section-title-left">
+                            <svg class="collapse-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span>Docker Actions</span>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="docker-actions">
+                            <button class="btn-docker-action" id="rebuildDockerBtn" title="Rebuild image">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Rebuild Image
+                            </button>
+                            <button class="btn-docker-action" id="restartContainerBtn" title="Restart container">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                Restart Container
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Info -->
+                <div class="nav-section system-info">
+                    <div class="system-card">
+                        <div class="system-row">
+                            <span class="system-label">Platform</span>
+                            <span class="system-value" id="platformInfo">Detecting...</span>
+                        </div>
+                        <div class="system-row">
+                            <span class="system-label">Docker</span>
+                            <span class="system-value" id="dockerInfo">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CYH Promo Section -->
+                <div class="nav-section cyh-promo">
+                    <div class="promo-card">
+
+                        <div class="promo-content">
+                            <span class="promo-title">CanYouHack</span>
+                            <span class="promo-desc">Security Training Platform</span>
+                        </div>
+                        <a href="https://canyouhack.org" target="_blank" class="promo-link">
+                            Visit →
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-indicator" id="connectionIndicator">
+                    <span class="indicator-dot"></span>
+                    <span class="indicator-text">Disconnected</span>
+                </div>
+                <div class="mode-indicator" id="currentModeIndicator">
+                    <span class="user-prompt">cyh<span class="prompt-at">@</span><span
+                            class="prompt-root">root</span><span class="prompt-hash">#</span></span>
+                    <span id="currentModeText">CYH Local</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Terminal Header -->
+            <header class="terminal-header">
+                <div class="window-controls">
+                    <button class="control-btn close" onclick="closeTerminal()" title="Close">
+                        <svg viewBox="0 0 12 12">
+                            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <button class="control-btn minimize" onclick="minimizeTerminal()" title="Minimize">
+                        <svg viewBox="0 0 12 12">
+                            <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <button class="control-btn maximize" onclick="maximizeTerminal()" title="Maximize">
+                        <svg viewBox="0 0 12 12">
+                            <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"
+                                rx="1" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="terminal-title" id="terminalTitle">
+                    <span class="title-icon" id="headerModeIcon">
+                        <span class="header-prompt">>_</span>
+                    </span>
+                    <span class="title-text">CYH Terminal</span>
+                    <span class="title-mode" id="headerModeLabel">CYH Local</span>
+                </div>
+
+                <div class="header-actions">
+                    <button class="action-btn" onclick="copySelection()" title="Copy (Ctrl+Shift+C)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                    </button>
+                    <button class="action-btn" onclick="pasteClipboard()" title="Paste (Ctrl+Shift+V)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+                            <rect x="8" y="2" width="8" height="4" rx="1" />
+                        </svg>
+                    </button>
+                    <button class="action-btn" onclick="clearTerminal()" title="Clear terminal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2">
+                            </path>
+                        </svg>
+                    </button>
+                    <button class="action-btn" onclick="toggleFullscreen()" title="Fullscreen (F11)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Terminal Body -->
+            <div class="terminal-body" id="terminalBody"></div>
+
+            <!-- Status Bar -->
+            <footer class="status-bar">
+
+                <div class="status-right">
+                    <span class="status-item cyh-badge">
+                        <a href="https://canyouhack.org" target="_blank">canyouhack.org</a>
+                    </span>
+                    <span class="status-separator">│</span>
+                    <span class="status-item" id="sessionTime">00:00:00</span>
+                    <span class="status-separator">│</span>
+                    <span class="status-item status-connection" id="wsStatus">Connecting...</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="containerModal">
+        <div class="modal-backdrop" onclick="closeContainerModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Create Container</h3>
+                <button class="modal-close" onclick="closeContainerModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
+        // Detect platform
+        document.addEventListener('DOMContentLoaded', () => {
+            const platform = navigator.platform.toLowerCase();
+            const platformInfo = document.getElementById('platformInfo');
+            if (platform.includes('win')) {
+                platformInfo.textContent = 'Windows';
+                platformInfo.classList.add('platform-windows');
+            } else if (platform.includes('linux')) {
+                platformInfo.textContent = 'Linux';
+                platformInfo.classList.add('platform-linux');
+            } else if (platform.includes('mac')) {
+                platformInfo.textContent = 'macOS';
+                platformInfo.classList.add('platform-mac');
+            } else {
+                platformInfo.textContent = platform;
+            }
+        });
+    </script>
+    <script src="terminal.js"></script>
+</body>
+
+</html>

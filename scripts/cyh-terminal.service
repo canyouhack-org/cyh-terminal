@@ -1,0 +1,24 @@
+[Unit]
+Description=CYH Terminal - CanYouHack Security Terminal
+Documentation=https://canyouhack.org
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/path/to/terminal-app/backend
+ExecStart=/path/to/terminal-app/backend/terminal-server
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security
+NoNewPrivileges=false
+ProtectSystem=false
+ProtectHome=false
+
+[Install]
+WantedBy=multi-user.target
