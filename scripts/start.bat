@@ -1,8 +1,12 @@
 @echo off
-:: =====================================================
-:: CYH Terminal - Windows Start (Hidden)
-:: Launches server without console window
-:: =====================================================
-
-cd /d "%~dp0"
-wscript.exe "start-hidden.vbs"
+setlocal
+cd /d "C:\Users\abdullaxows\Downloads\cyh-terminal\backend"
+echo Starting CYH Terminal...
+start /b "" terminal-server.exe
+timeout /t 2 /nobreak >nul
+echo.
+echo   CYH Terminal is running!
+echo   Open: http://localhost:3333
+echo.
+start "" http://localhost:3333
+endlocal

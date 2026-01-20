@@ -1,115 +1,206 @@
 # =====================================================
 # CYH Terminal - PowerShell Installation Script
-# CanYouHack Security Terminal
+# CanYouHack.org - CYH Terminal
 # Run as Administrator
 # =====================================================
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Write-Info($msg)  { Write-Host $msg -ForegroundColor Cyan }
+function Write-Ok($msg)    { Write-Host $msg -ForegroundColor Green }
+function Write-Warn($msg)  { Write-Host $msg -ForegroundColor Yellow }
+function Write-Err($msg)   { Write-Host $msg -ForegroundColor Red }
+
 # Check admin
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$isAdmin = ([Security.Principal.WindowsPrincipal] `
+    [Security.Principal.WindowsIdentity]::GetCurrent()
+).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
 if (-not $isAdmin) {
-    Write-Host "ERROR: Run this script as Administrator!" -ForegroundColor Red
-    Write-Host "Right-click PowerShell -> Run as Administrator" -ForegroundColor Yellow
+    Write-Err  "ERROR: Run this script as Administrator!"
+    Write-Warn "Right-click PowerShell -> Run as Administrator"
     exit 1
 }
 
 Write-Host ""
-Write-Host "  ╔══════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "  ║    CYH Terminal - PowerShell Installer           ║" -ForegroundColor Cyan
-Write-Host "  ║            CanYouHack.org                        ║" -ForegroundColor Cyan
-Write-Host "  ╚══════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
+Write-Host "   CYH Terminal - PowerShell Installer         " -ForegroundColor Cyan
+Write-Host "   https://canyouhack.org                      " -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host ""
 
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectDir = Split-Path -Parent $ScriptDir
 $BackendDir = Join-Path $ProjectDir "backend"
 
-# Install Chocolatey
-Write-Host "[1/5] Checking Chocolatey..." -ForegroundColor Cyan
-if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Chocolatey..." -ForegroundColor Yellow
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-    Write-Host "[OK] Chocolatey installed" -ForegroundColor Green
-} else {
-    Write-Host "[OK] Chocolatey is installed" -ForegroundColor Green
-}
-
-# Install Go
-Write-Host ""
-Write-Host "[2/5] Installing Go..." -ForegroundColor Cyan
-choco install golang -y
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-if (Get-Command go -ErrorAction SilentlyContinue) {
-    $goVersion = go version
-    Write-Host "[OK] $goVersion" -ForegroundColor Green
-} else {
-    Write-Host "[WARN] Go may need a restart to be available" -ForegroundColor Yellow
-}
-
-# Install Docker
-Write-Host ""
-Write-Host "[3/5] Installing Docker Desktop..." -ForegroundColor Cyan
-choco install docker-desktop -y
-Write-Host "[OK] Docker Desktop installed (requires restart)" -ForegroundColor Green
-
-# Install Git
-Write-Host ""
-Write-Host "[4/5] Installing Git..." -ForegroundColor Cyan
-choco install git -y
-Write-Host "[OK] Git installed" -ForegroundColor Green
-
-# Build
-Write-Host ""
-Write-Host "[5/5] Building CYH Terminal..." -ForegroundColor Cyan
-Set-Location $BackendDir
-if (-not (Test-Path "go.mod")) {
-    Write-Host "[ERROR] go.mod not found!" -ForegroundColor Red
+if (-not (Test-Path $BackendDir)) {
+    Write-Err "[ERROR] Backend directory not found: $BackendDir"
     exit 1
 }
 
-# Refresh PATH
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-$env:GOPATH = $env:USERPROFILE + "\go"
-$env:Path += ";$env:GOPATH\bin;C:\Program Files\Go\bin"
+# -----------------------------------------------------
+# [1/5] Install Chocolatey
+# -----------------------------------------------------
+Write-Info "[1/5] Checking Chocolatey..."
+if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+    Write-Warn "Installing Chocolatey..."
+    try {
+        Set-ExecutionPolicy Bypass -Scope Process -Force | Out-Null
+        [System.Net.ServicePointManager]::SecurityProtocol = `
+            [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
-try {
-    & go build -o terminal-server.exe .
-    if (Test-Path "terminal-server.exe") {
-        Write-Host "[OK] Build successful: terminal-server.exe" -ForegroundColor Green
-    } else {
-        Write-Host "[ERROR] Build failed!" -ForegroundColor Red
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString(
+            'https://community.chocolatey.org/install.ps1'
+        ))
+
+        # Refresh PATH for current session
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+                    [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+        Write-Ok "[OK] Chocolatey installed"
+    } catch {
+        Write-Err "[ERROR] Chocolatey install failed: $($_.Exception.Message)"
+        throw
     }
-} catch {
-    Write-Host "[WARN] Build may require restart for Go to be in PATH" -ForegroundColor Yellow
+} else {
+    Write-Ok "[OK] Chocolatey is installed"
 }
 
-# Create start script
-$startScript = @"
+# -----------------------------------------------------
+# [2/5] Install Go
+# -----------------------------------------------------
+Write-Host ""
+Write-Info "[2/5] Installing Go..."
+try {
+    choco install golang -y | Out-Host
+} catch {
+    Write-Err "[ERROR] Go install (choco) failed: $($_.Exception.Message)"
+    throw
+}
+
+# Refresh PATH
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+            [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+if (Get-Command go -ErrorAction SilentlyContinue) {
+    Write-Ok ("[OK] " + (go version))
+} else {
+    Write-Warn "[WARN] Go may need a restart to be available in PATH."
+}
+
+# -----------------------------------------------------
+# [3/5] Install Docker Desktop
+# -----------------------------------------------------
+Write-Host ""
+Write-Info "[3/5] Installing Docker Desktop..."
+try {
+    choco install docker-desktop -y | Out-Host
+    Write-Ok "[OK] Docker Desktop installed (restart may be required)"
+} catch {
+    Write-Warn "[WARN] Docker Desktop install failed or requires manual install: $($_.Exception.Message)"
+    Write-Warn "You can install Docker Desktop manually if needed."
+}
+
+# -----------------------------------------------------
+# [4/5] Install Git
+# -----------------------------------------------------
+Write-Host ""
+Write-Info "[4/5] Installing Git..."
+try {
+    choco install git -y | Out-Host
+    Write-Ok "[OK] Git installed"
+} catch {
+    Write-Warn "[WARN] Git install failed: $($_.Exception.Message)"
+}
+
+# -----------------------------------------------------
+# [5/5] Build backend
+# -----------------------------------------------------
+Write-Host ""
+Write-Info "[5/5] Building CYH Terminal backend..."
+
+Set-Location $BackendDir
+
+if (-not (Test-Path "go.mod")) {
+    Write-Err "[ERROR] go.mod not found in backend dir!"
+    exit 1
+}
+
+# Refresh PATH + GOPATH for this session
+$env:Path  = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+             [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+$env:GOPATH = Join-Path $env:USERPROFILE "go"
+
+# Ensure common Go install paths are present for this session
+# (Chocolatey usually adds these, but this helps without restart)
+$goBin1 = Join-Path $env:GOPATH "bin"
+$goBin2 = "C:\Program Files\Go\bin"
+if ($env:Path -notlike "*$goBin1*") { $env:Path += ";$goBin1" }
+if (Test-Path $goBin2) {
+    if ($env:Path -notlike "*$goBin2*") { $env:Path += ";$goBin2" }
+}
+
+try {
+    & go env | Out-Null
+} catch {
+    Write-Warn "[WARN] 'go' is not available yet. Restart may be required, then re-run this script."
+    throw
+}
+
+try {
+    & go build -o terminal-server.exe . | Out-Host
+    if (Test-Path "terminal-server.exe") {
+        Write-Ok "[OK] Build successful: terminal-server.exe"
+    } else {
+        Write-Err "[ERROR] Build finished but terminal-server.exe not found."
+        exit 1
+    }
+} catch {
+    Write-Err "[ERROR] Build failed: $($_.Exception.Message)"
+    throw
+}
+
+# -----------------------------------------------------
+# Create start.bat (safe)
+# -----------------------------------------------------
+# Use a literal here-string so CMD content doesn't get parsed by PowerShell,
+# then replace placeholder with real path.
+$startBat = @'
 @echo off
-cd /d "$BackendDir"
+setlocal
+cd /d "__BACKEND_DIR__"
 echo Starting CYH Terminal...
-start /b terminal-server.exe
+start /b "" terminal-server.exe
 timeout /t 2 /nobreak >nul
 echo.
 echo   CYH Terminal is running!
 echo   Open: http://localhost:3333
 echo.
-start http://localhost:3333
-"@
-Set-Content -Path (Join-Path $ScriptDir "start.bat") -Value $startScript
+start "" http://localhost:3333
+endlocal
+'@
 
+$startBat = $startBat.Replace('__BACKEND_DIR__', $BackendDir)
+
+$startBatPath = Join-Path $ScriptDir "start.bat"
+Set-Content -Path $startBatPath -Value $startBat -Encoding ASCII
+Write-Ok "[OK] Created: $startBatPath"
+
+# -----------------------------------------------------
 # Summary
+# -----------------------------------------------------
 Write-Host ""
-Write-Host "═══════════════════════════════════════════════════" -ForegroundColor Green
+Write-Host "===============================================" -ForegroundColor Green
 Write-Host "[SUCCESS] Installation complete!" -ForegroundColor Green
-Write-Host "═══════════════════════════════════════════════════" -ForegroundColor Green
+Write-Host "===============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "IMPORTANT: Please restart your computer, then:" -ForegroundColor Yellow
-Write-Host "  1. Start Docker Desktop" -ForegroundColor White
-Write-Host "  2. Run: scripts\start.bat" -ForegroundColor White
-Write-Host "  3. Open: http://localhost:3333" -ForegroundColor White
+Write-Warn "IMPORTANT:"
+Write-Host "  1) Restart your computer" -ForegroundColor White
+Write-Host "  2) Start Docker Desktop (if you need it)" -ForegroundColor White
+Write-Host "  3) Run: scripts\start.bat" -ForegroundColor White
+Write-Host "  4) Open: http://localhost:3333" -ForegroundColor White
 Write-Host ""
 Write-Host "Visit: https://canyouhack.org" -ForegroundColor Cyan
 Write-Host ""

@@ -62,7 +62,6 @@ if [ -t 1 ]; then
     echo ""
 fi
 WELCOME
-RUN chmod +x /etc/profile.d/00-welcome.sh
 
 # Configure bash with CYH theme
 RUN cat > /root/.bashrc << 'BASHRC'
@@ -124,7 +123,7 @@ sysinfo() {
     echo -e "  \033[38;2;127;255;0m●\033[0m OS:        \033[1;37mCYH Hacking Environment\033[0m"
     echo -e "  \033[38;2;127;255;0m●\033[0m Kernel:    \033[1;37m$(uname -r)\033[0m"
     echo -e "  \033[38;2;127;255;0m●\033[0m Uptime:    \033[1;37m$(uptime -p)\033[0m"
-    echo -e "  \033[38;2;127;255;0m●\033[0m Memory:    \033[1;37m$(free -h | awk '/Mem:/ {print $3 " / " $2}')\033[0m"
+    echo -e "  \033[38;2;127;255;0m●\033[0m Memory:    \033[1;37m$(free -h | awk '/Mem:/ {print $3 \" / \" $2}')\033[0m"
     echo -e "  \033[38;2;127;255;0m●\033[0m Shell:     \033[1;37m$SHELL\033[0m"
     echo -e "\033[38;2;127;255;0m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
     echo ""
@@ -156,5 +155,9 @@ INPUTRC
 
 # Sample folder with CYH branding
 RUN mkdir -p /root/projects && echo "# CYH Hacking Terminal\n\nWelcome to CanYouHack Security Training Platform\nhttps://canyouhack.org" > /root/projects/README.md
+
+# Convert CRLF to LF for all config files (Windows host compatibility)
+RUN sed -i 's/\r$//' /root/.bashrc /root/.bash_profile /root/.inputrc /etc/profile.d/00-welcome.sh && \
+    chmod +x /etc/profile.d/00-welcome.sh
 
 CMD ["/bin/bash", "--login"]
