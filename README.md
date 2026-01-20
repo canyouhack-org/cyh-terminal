@@ -27,6 +27,8 @@ A browser-based terminal emulator with dual-mode support: direct system access a
 
 ## Overview
 
+![CYH Terminal Interface](screenshots/main.png)
+
 CYH Terminal provides two operating modes:
 
 | Mode | Description |
