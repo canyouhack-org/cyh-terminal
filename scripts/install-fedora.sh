@@ -56,7 +56,6 @@ BACKEND_DIR="$PROJECT_DIR/backend"
 
 # Update system
 echo -e "\n${CYAN}[1/6] Updating system packages...${NC}"
-$SUDO $PKG_MGR update -y
 
 # Install Go
 echo -e "\n${CYAN}[2/6] Installing Go...${NC}"

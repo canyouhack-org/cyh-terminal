@@ -1,0 +1,20 @@
+2026/01/20 20:19:33 ╔══════════════════════════════════════════════════════════════╗
+2026/01/20 20:19:33 ║         >_ CYH | CanYouHack Terminal Server                  ║
+2026/01/20 20:19:33 ╠══════════════════════════════════════════════════════════════╣
+2026/01/20 20:19:33 ║  🌐 Server:     http://localhost:3333                        ║
+2026/01/20 20:19:33 ║  🔌 WebSocket:  ws://localhost:3333/ws/terminal              ║
+2026/01/20 20:19:33 ╠══════════════════════════════════════════════════════════════╣
+2026/01/20 20:19:33 ║  📋 Terminal Modes:                                          ║
+2026/01/20 20:19:33 ║     • CYH Local    - ws://localhost:3333/ws/terminal?mode=local
+2026/01/20 20:19:33 ║     • CYH Hacking  - ws://localhost:3333/ws/terminal?mode=docker
+2026/01/20 20:19:33 ║  🔐 Docker: Ready (CYH Hacking environment available)        ║
+2026/01/20 20:19:33 ╚══════════════════════════════════════════════════════════════╝
+2026/01/20 20:19:33 ✅ CYH Docker image already exists. Skipping build.
+2026/01/20 20:19:33 ✅ Ubuntu container already running.
+2026/01/20 20:19:33 🎉 CYH Terminal Docker environment is ready!
+2026/01/20 20:19:38 Starting local terminal...
+2026/01/20 20:19:38 Terminal session started (mode: local, pid: 86119)
+2026/01/20 20:19:40 Starting local terminal...
+2026/01/20 20:19:40 Terminal session started (mode: local, pid: 86339)
+2026/01/20 20:19:42 Starting CYH Hacking Docker terminal...
+2026/01/20 20:19:42 Terminal session started (mode: docker, pid: 86468)
