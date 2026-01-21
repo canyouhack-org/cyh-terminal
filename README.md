@@ -39,8 +39,12 @@ CYH Terminal provides two operating modes:
 ### Key Features
 
 - 🎥 **Session Recording & Playback** - Record terminal sessions, export as JSON, and replay them
+- 🔴 **Live Collaboration** - Share your terminal in real-time with others (View Only, Shared Control, Instructor modes)
+- 🔐 **User Authentication** - Secure user accounts with isolated container environments
+- 💾 **Persistent Sessions** - Sessions are saved to a local database and can be resumed anytime
 - 🔧 **Pre-installed Security Tools** - nmap, sqlmap, hydra, nikto ready to use
 - 🔄 **One-click Mode Switch** - Switch between local and Docker environments instantly
+- 🐳 **Smart Docker Integration** - Auto-starts Docker Desktop on Windows if needed
 - 📱 **Mobile-friendly** - Works on phones and tablets, add to home screen as PWA
 - 🖥️ **Cross-platform** - Runs on Linux, macOS, and Windows
 
@@ -311,8 +315,9 @@ Stop-ScheduledTask -TaskName "CYH Terminal"
 Docker Mode provides an isolated Ubuntu container with security tools pre-installed.
 
 **Prerequisites:**
-- Docker must be running
-- User must be in the `docker` group (Linux)
+- Docker must be installed
+- **Windows**: The application will automatically attempt to start Docker Desktop if it's not running.
+- **Linux**: User must be in the `docker` group.
 
 **Available Tools:**
 
@@ -332,6 +337,37 @@ docker build -t cyh-terminal .
 
 ---
 
+## Live Collaboration
+
+CYH Terminal enables real-time collaboration for teaching, debugging, or pair programming.
+
+### Features
+- **Real-time Streaming**: Low-latency terminal streaming via WebSockets.
+- **Multiple Modes**:
+  - **View Only**: Spectators can watch but not interact.
+  - **Shared Control**: Viewers can type commands (great for pair programming).
+  - **Instructor Mode**: Only the host can type, but can grant temporary control to students.
+- **Instant Sharing**: Generate a unique link to share your session instantly.
+- **Viewer Management**: See who is connected and manage their permissions on the fly.
+
+### How to use
+1. Start a session.
+2. Click the **Share** button in the header.
+3. Select the permission mode.
+4. Copy the link and send it to your collaborators.
+
+---
+
+## User Authentication
+
+The system supports multi-user environments with secure authentication.
+
+- **User Accounts**: Sign up and log in to save your sessions and preferences.
+- **Isolated Environments**: Each user gets their own prefixed Docker containers (e.g., `cyh_username_container`).
+- **Session History**: All your past sessions are saved to a local SQLite database and can be resumed or replayed later.
+
+---
+
 ## Mobile Access
 
 1. Start the server on your computer
@@ -348,7 +384,12 @@ docker build -t cyh-terminal .
 
 ## Session Recording
 
-CYH Terminal allows you to record, export, and replay terminal sessions.
+CYH Terminal automatically records all session activity to a local database for history and resumption. You can also manually record specific segments to export as JSON.
+
+### Automatic Recording
+Every command and output is saved to the internal database. You can view your session history and resume previous sessions from the "Sessions" menu.
+
+### Manual Recording & Export
 
 ### Recording Controls
 
