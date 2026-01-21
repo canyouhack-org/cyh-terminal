@@ -12,7 +12,7 @@ import (
 	"os"
 	"sync"
 	"time"
-	"strings"
+
 
 	"github.com/UserExistsError/conpty"
 	"github.com/gorilla/websocket"

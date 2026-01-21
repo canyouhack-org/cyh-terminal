@@ -134,6 +134,47 @@ fi
 	return nil
 }
 
+// StartDockerWindows attempts to start Docker Desktop
+func StartDockerWindows() error {
+	// Common paths for Docker Desktop
+	paths := []string{
+		`C:\Program Files\Docker\Docker\Docker Desktop.exe`,
+		`C:\Program Files (x86)\Docker\Docker\Docker Desktop.exe`,
+	}
+
+	var dockerPath string
+	for _, p := range paths {
+		if _, err := os.Stat(p); err == nil {
+			dockerPath = p
+			break
+		}
+	}
+
+	if dockerPath == "" {
+		return fmt.Errorf("Docker Desktop executable not found")
+	}
+
+	log.Printf("🚀 Starting Docker Desktop from %s...", dockerPath)
+	cmd := exec.Command(dockerPath)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start Docker Desktop: %w", err)
+	}
+
+	// Wait for Docker to be ready
+	log.Println("⏳ Waiting for Docker to start (this may take a minute)...")
+	for i := 0; i < 60; i++ {
+		if CheckDockerInstalled() {
+			log.Println("✅ Docker started successfully!")
+			return nil
+		}
+		time.Sleep(2 * time.Second)
+		fmt.Print(".")
+	}
+	fmt.Println()
+
+	return fmt.Errorf("timed out waiting for Docker to start")
+}
+
 // InstallDockerWindows provides instructions for Windows Docker installation
 func InstallDockerWindows() error {
 	log.Println("🐳 Docker installation on Windows...")
@@ -327,7 +368,20 @@ func (dm *DockerManager) IsReady() bool {
 // InitializeDocker builds image and starts container if Docker is available
 func InitializeDocker() bool {
 	if !CheckDockerInstalled() {
-		log.Println("⚠️  Docker not installed. Attempting auto-installation...")
+		log.Println("⚠️  Docker not detected.")
+
+		// On Windows, try to start it first before assuming it's not installed
+		if isWindows() {
+			log.Println("🔄 Attempting to start Docker Desktop...")
+			if err := StartDockerWindows(); err == nil {
+				// Docker started successfully
+				goto DockerReady
+			} else {
+				log.Printf("⚠️  Could not start Docker Desktop: %v", err)
+			}
+		}
+
+		log.Println("⚠️  Docker not installed or not running. Attempting auto-installation...")
 		
 		// Try to install Docker
 		if TryInstallDocker() {
@@ -340,6 +394,8 @@ func InitializeDocker() bool {
 			return false
 		}
 	}
+
+DockerReady:
 
 	go func() {
 		// Check if image already exists
