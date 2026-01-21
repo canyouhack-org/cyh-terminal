@@ -1,3 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Container management functions
 async function startContainer(id) {
     try {
@@ -239,13 +254,22 @@ function initMobileEventListeners() {
 
 // Global functions for UI buttons
 function toggleRecording() {
-    // Legacy mapping: Toggle recording now starts a new session
-    createNewSession();
+    if (window.terminalApp?.isRecording) {
+        window.terminalApp.stopRecording();
+    } else {
+        window.terminalApp?.startRecording();
+    }
 }
 
 async function exportRecording() {
+    // Prefer local recording export if available
+    if (window.terminalApp?.recordingData?.length > 0 || window.terminalApp?.isRecording) {
+        window.terminalApp.exportRecording();
+        return;
+    }
+
     if (!window.terminalApp?.activeSessionId) {
-        alert('No active session.');
+        alert('No active session or local recording to export.');
         return;
     }
 

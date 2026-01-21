@@ -381,6 +381,11 @@ class TerminalApp {
                     this.commandBuffer += data;
                 }
             }
+
+            // Record input
+            if (this.isRecording) {
+                this.recordEvent('input', data);
+            }
         });
 
         // Track output buffer for path extraction
@@ -973,12 +978,22 @@ class TerminalApp {
                     this.terminal.write(data);
                     this.parseOutputForPath(data);
                     this.outputSeen = true;
+
+                    // Record output
+                    if (this.isRecording) {
+                        this.recordEvent('output', data);
+                    }
                 } else if (data instanceof ArrayBuffer) {
                     // Binary data is always terminal output
                     this.terminal.write(new Uint8Array(data));
                     const text = new TextDecoder().decode(new Uint8Array(data));
                     this.parseOutputForPath(text);
                     this.outputSeen = true;
+
+                    // Record output
+                    if (this.isRecording) {
+                        this.recordEvent('output', text);
+                    }
                 }
             };
 
@@ -1620,10 +1635,23 @@ class TerminalApp {
     }
 
     updateRecordingUI() {
-        // Recording UI hidden as per user request
         const recordingIndicator = document.getElementById('recordingIndicator');
+        const recordBtn = document.getElementById('recordBtn');
+
         if (recordingIndicator) {
-            recordingIndicator.style.display = 'none';
+            recordingIndicator.style.display = this.isRecording ? 'flex' : 'none';
+        }
+
+        if (recordBtn) {
+            recordBtn.classList.toggle('active', this.isRecording);
+            recordBtn.title = this.isRecording ? 'Stop Recording' : 'Start Recording';
+
+            // Update icon
+            if (this.isRecording) {
+                recordBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>'; // Stop icon
+            } else {
+                recordBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>'; // Record icon
+            }
         }
     }
 
@@ -1716,3 +1744,12 @@ window.CYHTerminal = {
     pausePlayback: () => window.terminalApp?.pausePlayback(),
     stopPlayback: () => window.terminalApp?.stopPlayback()
 };
+
+
+
+
+
+
+
+
+
