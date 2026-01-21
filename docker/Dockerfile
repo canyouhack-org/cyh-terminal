@@ -24,42 +24,46 @@ WORKDIR /root
 RUN cat > /etc/profile.d/00-welcome.sh << 'WELCOME'
 #!/bin/bash
 
-if [ -t 1 ]; then
-    clear
-    
-    # Colors - CYH Green Theme
-    GREEN='\033[38;2;127;255;0m'
-    BRIGHT_GREEN='\033[38;2;159;255;64m'
-    DARK_GREEN='\033[38;2;95;204;0m'
-    RED='\033[38;5;196m'
-    WHITE='\033[1;37m'
-    GRAY='\033[38;5;245m'
-    CYAN='\033[38;5;87m'
-    RESET='\033[0m'
-    BOLD='\033[1m'
-    
-    echo ""
-    echo -e "${GREEN}  ██████╗██╗   ██╗██╗  ██╗${RESET}"
-    echo -e "${GREEN} ██╔════╝╚██╗ ██╔╝██║  ██║${RESET}"
-    echo -e "${GREEN} ██║      ╚████╔╝ ███████║${RESET}"
-    echo -e "${GREEN} ██║       ╚██╔╝  ██╔══██║${RESET}"
-    echo -e "${GREEN} ╚██████╗   ██║   ██║  ██║${RESET}"
-    echo -e "${GREEN}  ╚═════╝   ╚═╝   ╚═╝  ╚═╝${RESET}"
-    echo ""
-    echo -e "${BRIGHT_GREEN}    CanYouHack Terminal${RESET}"
-    echo -e "${GRAY}    https://canyouhack.org${RESET}"
-    echo ""
-    echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
-    echo -e "${GREEN}║${RESET}  ${GREEN}>_${RESET}  ${BOLD}${WHITE}CYH Hacking Environment${RESET}  ${GRAY}|${RESET}  ${CYAN}Security Training Platform${RESET}   ${GREEN}║${RESET}"
-    echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-    echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} Hostname: ${WHITE}$(hostname)${RESET}                                       ${GREEN}║${RESET}"
-    echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} Kernel:   ${WHITE}$(uname -r)${RESET}                          ${GREEN}║${RESET}"
-    echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} User:     ${WHITE}$(whoami)${RESET}                                             ${GREEN}║${RESET}"
-    echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} Shell:    ${WHITE}/bin/bash${RESET}                                          ${GREEN}║${RESET}"
-    echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-    echo -e "${GREEN}║${RESET}  ${GRAY}Tools:${RESET} ${CYAN}nmap${RESET}  ${CYAN}nikto${RESET}  ${CYAN}sqlmap${RESET}  ${CYAN}hydra${RESET}  ${CYAN}python3${RESET}              ${GREEN}║${RESET}"
-    echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
-    echo ""
+# Only show banner if CYH_SKIP_BANNER is NOT set (fresh session)
+if [ -z "$CYH_SKIP_BANNER" ]; then
+
+    if [ -t 1 ]; then
+        clear
+        
+        # Colors - CYH Green Theme
+        GREEN='\033[38;2;127;255;0m'
+        BRIGHT_GREEN='\033[38;2;159;255;64m'
+        DARK_GREEN='\033[38;2;95;204;0m'
+        RED='\033[38;5;196m'
+        WHITE='\033[1;37m'
+        GRAY='\033[38;5;245m'
+        CYAN='\033[38;5;87m'
+        RESET='\033[0m'
+        BOLD='\033[1m'
+        
+        echo ""
+        echo -e "${GREEN}  ██████╗██╗   ██╗██╗  ██╗${RESET}"
+        echo -e "${GREEN} ██╔════╝╚██╗ ██╔╝██║  ██║${RESET}"
+        echo -e "${GREEN} ██║      ╚████╔╝ ███████║${RESET}"
+        echo -e "${GREEN} ██║       ╚██╔╝  ██╔══██║${RESET}"
+        echo -e "${GREEN} ╚██████╗   ██║   ██║  ██║${RESET}"
+        echo -e "${GREEN}  ╚═════╝   ╚═╝   ╚═╝  ╚═╝${RESET}"
+        echo ""
+        echo -e "${BRIGHT_GREEN}    CanYouHack Terminal${RESET}"
+        echo -e "${GRAY}    https://canyouhack.org${RESET}"
+        echo ""
+        echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
+        echo -e "${GREEN}║${RESET}  ${GREEN}>_${RESET}  ${BOLD}${WHITE}CYH Hacking Environment${RESET}  ${GRAY}|${RESET}  ${CYAN}Security Training Platform${RESET}   ${GREEN}║${RESET}"
+        echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} Hostname: ${WHITE}$(hostname)${RESET}                                       ${GREEN}║${RESET}"
+        echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} Kernel:   ${WHITE}$(uname -r)${RESET}                          ${GREEN}║${RESET}"
+        echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} User:     ${WHITE}$(whoami)${RESET}                                             ${GREEN}║${RESET}"
+        echo -e "${GREEN}║${RESET}  ${BRIGHT_GREEN}●${RESET} Shell:    ${WHITE}/bin/bash${RESET}                                          ${GREEN}║${RESET}"
+        echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "${GREEN}║${RESET}  ${GRAY}Tools:${RESET} ${CYAN}nmap${RESET}  ${CYAN}nikto${RESET}  ${CYAN}sqlmap${RESET}  ${CYAN}hydra${RESET}  ${CYAN}python3${RESET}              ${GREEN}║${RESET}"
+        echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
+        echo ""
+    fi
 fi
 WELCOME
 

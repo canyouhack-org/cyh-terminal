@@ -174,6 +174,22 @@ body {
             transparent);
 }
 
+.sidebar-resizer {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+    z-index: 100;
+    transition: background var(--transition-fast);
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer.resizing {
+    background: rgba(127, 255, 0, 0.2);
+}
+
 /* =====================================================
    Sidebar Header with CYH Logo
    ===================================================== */
@@ -656,6 +672,11 @@ body {
 .container-item .container-actions button.start:hover {
     background: rgba(127, 255, 0, 0.15);
     color: var(--cyh-green);
+}
+
+.container-item .container-actions button.connect:hover {
+    background: rgba(0, 217, 255, 0.15);
+    color: var(--accent-cyan);
 }
 
 .container-item .container-actions button.stop:hover,
@@ -2341,4 +2362,995 @@ button:focus-visible {
     .sidebar-footer {
         padding: 10px 16px;
     }
+}
+
+/* =====================================================
+   Session Recording & Playback Styles
+   ===================================================== */
+
+/* Recording Controls in Header */
+.recording-controls {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.header-separator {
+    color: var(--text-subtle);
+    margin: 0 4px;
+    font-size: 14px;
+}
+
+/* Record Button */
+.action-btn.record-btn {
+    color: var(--text-muted);
+}
+
+.action-btn.record-btn:hover {
+    color: var(--accent-red);
+    background: rgba(255, 71, 87, 0.1);
+}
+
+.action-btn.record-btn.recording {
+    color: var(--accent-red);
+    background: rgba(255, 71, 87, 0.15);
+    animation: recordPulse 1s ease-in-out infinite;
+}
+
+@keyframes recordPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4);
+    }
+
+    50% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 6px rgba(255, 71, 87, 0);
+    }
+}
+
+/* Recording Indicator in Status Bar */
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 71, 87, 0.15);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    border-radius: 4px;
+    animation: recIndicatorPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recIndicatorPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.rec-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-red);
+    border-radius: 50%;
+    animation: recDotBlink 1s ease-in-out infinite;
+}
+
+@keyframes recDotBlink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.rec-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent-red);
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Status Bar Left Section */
+.status-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Playback Controls in Status Bar */
+.playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 8px;
+    background: rgba(127, 255, 0, 0.08);
+    border: 1px solid rgba(127, 255, 0, 0.2);
+    border-radius: 6px;
+}
+
+.playback-btn {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.playback-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--cyh-green);
+}
+
+.playback-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.playback-btn.speed-btn {
+    width: auto;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyh-green);
+}
+
+.playback-btn.speed-btn:hover {
+    background: rgba(127, 255, 0, 0.15);
+}
+
+/* Playback Progress */
+.playback-progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 150px;
+}
+
+.playback-progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.playback-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--cyh-green-dark), var(--cyh-green));
+    border-radius: 2px;
+    transition: width 0.1s linear;
+}
+
+.playback-time {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Status bar adjustments for recording */
+.status-bar {
+    justify-content: space-between;
+}
+
+/* =====================================================
+   Security Settings Styles
+   ===================================================== */
+
+.security-settings {
+    padding: 4px;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.setting-row:last-child {
+    border-bottom: none;
+}
+
+.setting-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.setting-value {
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyh-green);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-secondary);
+    transition: var(--transition-normal);
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-muted);
+    transition: var(--transition-normal);
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked+.toggle-slider {
+    background-color: rgba(127, 255, 0, 0.2);
+    border-color: var(--cyh-green);
+}
+
+.toggle-switch input:checked+.toggle-slider:before {
+    background-color: var(--cyh-green);
+    transform: translateX(20px);
+    box-shadow: 0 0 10px var(--cyh-green-glow);
+}
+
+/* Logout Button */
+.btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    border-radius: var(--border-radius-sm);
+    color: #ff7b7b;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.btn-logout:hover {
+    background: rgba(255, 71, 87, 0.2);
+    border-color: rgba(255, 71, 87, 0.5);
+    color: #ff4757;
+    transform: translateY(-1px);
+}
+
+.btn-logout svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* =====================================================
+   Sessions Panel Styles
+   ===================================================== */
+
+.sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.no-sessions {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius-sm);
+    border: 1px dashed var(--border-secondary);
+}
+
+/* Active Session Card */
+.active-session-card {
+    background: linear-gradient(135deg, rgba(127, 255, 0, 0.12) 0%, rgba(127, 255, 0, 0.04) 100%);
+    border: 1px solid var(--cyh-green);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 15px rgba(127, 255, 0, 0.1);
+    margin-bottom: 8px;
+}
+
+.session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.session-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.session-status {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.session-status.recording {
+    color: var(--accent-red);
+}
+
+.session-status.recording .rec-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-red);
+    border-radius: 50%;
+    animation: recPulse 1s ease-in-out infinite;
+}
+
+.session-status.live {
+    color: var(--cyh-green);
+}
+
+.session-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-icon-sm {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-secondary);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.btn-icon-sm:hover {
+    background: rgba(127, 255, 0, 0.1);
+    border-color: var(--cyh-green);
+    color: var(--cyh-green);
+}
+
+/* Live Viewers Card */
+.live-viewers-card {
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.08) 0%, rgba(0, 217, 255, 0.02) 100%);
+    border: 1px solid var(--accent-cyan);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+
+.viewers-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.viewers-icon {
+    font-size: 14px;
+}
+
+.viewers-count {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.viewers-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.viewers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.viewer-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.viewer-tag.owner {
+    background: rgba(127, 255, 0, 0.1);
+    border: 1px solid rgba(127, 255, 0, 0.3);
+    color: var(--cyh-green);
+}
+
+.viewer-tag.can-write {
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: var(--accent-purple);
+}
+
+.viewer-tag .grant-btn,
+.viewer-tag .revoke-btn {
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+}
+
+.viewer-tag .grant-btn:hover,
+.viewer-tag .revoke-btn:hover {
+    opacity: 1;
+}
+
+/* Permission Selector */
+.permission-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-secondary);
+    margin-top: 8px;
+}
+
+.permission-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.permission-selector select {
+    flex: 1;
+    padding: 6px 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.permission-selector select:hover,
+.permission-selector select:focus {
+    border-color: var(--cyh-green);
+    outline: none;
+}
+
+.permission-selector select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Copy Share Link Button */
+.btn-copy-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-copy-link:hover {
+    background: rgba(127, 255, 0, 0.1);
+    border-color: var(--cyh-green);
+    color: var(--cyh-green);
+}
+
+/* Session History Item */
+.session-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.session-item:hover {
+    background: var(--bg-elevated);
+    border-color: rgba(127, 255, 0, 0.3);
+    transform: translateX(4px);
+}
+
+.session-item .session-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.session-item .session-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.session-item .session-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-item .session-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.session-item .session-duration {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.session-item .session-live-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+    border-radius: 10px;
+    color: var(--accent-cyan);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.session-item .session-live-badge::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
+
+.session-item .session-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.session-item:hover .session-actions {
+    opacity: 1;
+}
+
+/* Live Viewer Mode Banner (for spectators) */
+.live-viewer-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    color: white;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 1000;
+    animation: bannerSlideIn 0.3s ease-out;
+}
+
+@keyframes bannerSlideIn {
+    from {
+        transform: translateY(-100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.live-viewer-banner .owner-name {
+    font-weight: 700;
+}
+
+.live-viewer-banner .permission-status {
+    padding: 2px 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.live-viewer-banner .request-control-btn {
+    padding: 4px 12px;
+    background: white;
+    border: none;
+    border-radius: 4px;
+    color: var(--bg-primary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.live-viewer-banner .request-control-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Toast notifications for live events */
+.live-toast {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-primary);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    animation: toastSlideIn 0.3s ease-out;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.live-toast.viewer-join {
+    border-color: var(--accent-cyan);
+}
+
+.live-toast.viewer-leave {
+    border-color: var(--accent-yellow);
+}
+
+.live-toast.permission-granted {
+    border-color: var(--cyh-green);
+}
+
+.live-toast .toast-icon {
+    font-size: 16px;
+}
+
+.live-toast .toast-close {
+    margin-left: auto;
+    padding: 4px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+/* =====================================================
+   Viewer Management & Toasts
+   ===================================================== */
+
+.live-viewers-card .viewers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.viewer-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.viewer-tag.owner {
+    border-color: var(--accent-yellow);
+    color: var(--accent-yellow);
+    background: rgba(255, 208, 0, 0.05);
+}
+
+.viewer-tag.can-write {
+    border-color: var(--cyh-green);
+    color: var(--cyh-green);
+    background: rgba(127, 255, 0, 0.05);
+}
+
+.revoke-btn,
+.grant-btn {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    padding: 0;
+    transition: all 0.2s;
+    margin-left: 4px;
+}
+
+.revoke-btn {
+    background: rgba(255, 71, 87, 0.1);
+    color: var(--accent-red);
+}
+
+.revoke-btn:hover {
+    background: var(--accent-red);
+    color: white;
+}
+
+.grant-btn {
+    background: rgba(127, 255, 0, 0.1);
+    color: var(--cyh-green);
+}
+
+.grant-btn:hover {
+    background: var(--cyh-green);
+    color: black;
+}
+
+/* Toast Notification Styles */
+.live-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-primary);
+    border-left-width: 3px;
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-md);
+    z-index: 10000;
+    animation: slideInRight 0.3s ease-out;
+    min-width: 250px;
+}
+
+.live-toast.request {
+    border-left-color: var(--accent-yellow);
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.live-toast .toast-icon {
+    font-size: 16px;
+}
+
+.live-toast .toast-content {
+    flex: 1;
+}
+
+.live-toast .toast-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.live-toast .toast-msg {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.live-toast .toast-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.btn-xs {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    flex: 1;
+}
+
+.btn-xs.accept {
+    background: var(--cyh-green);
+    color: black;
+}
+
+.btn-xs.deny {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-secondary);
+}
+
+.live-toast .toast-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 10px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Live Actions */
+.live-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.live-actions-row .btn-copy-link,
+.live-actions-row .btn-stop-sharing {
+    flex: 1;
+    margin-top: 0;
+    /* Override default marginTop if any */
+}
+
+.btn-stop-sharing {
+    padding: 8px;
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-stop-sharing:hover {
+    background: var(--accent-red);
+    color: white;
+}
+/* Maximized Mode (CSS Fullscreen) */
+body.maximized {
+    overflow: hidden;
+}
+
+body.maximized .sidebar {
+    display: none !important;
+}
+
+body.maximized .main-content {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+body.maximized .terminal-header {
+    border-radius: 0 !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
 }

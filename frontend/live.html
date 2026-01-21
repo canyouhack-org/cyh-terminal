@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CYH Terminal - Live Session">
+    <meta name="theme-color" content="#7FFF00">
+    <title>CYH Terminal | Live</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Xterm.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.8.0/lib/xterm-addon-web-links.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/styles.css?v=2">
+
+    <style>
+        /* Extra styles for Live View specific elements */
+        .live-indicator-pulse {
+            width: 8px;
+            height: 8px;
+            background: #ff4757;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(255, 71, 87, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+            }
+        }
+
+        .viewer-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-primary);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .viewer-item:last-child {
+            border-bottom: none;
+        }
+
+        .viewer-avatar {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: var(--cyh-green);
+            font-weight: bold;
+        }
+
+        .viewer-info {
+            flex: 1;
+        }
+
+        .viewer-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .permission-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(127, 255, 0, 0.1);
+            color: var(--cyh-green);
+            border: 1px solid rgba(127, 255, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <img src="/favicon.ico" alt="CYH" style="width: 28px; height: 28px; object-fit: contain;">
+                    </div>
+                    <div class="logo-text-container">
+                        <span class="logo-text">CanYouHack</span>
+                        <span class="logo-divider">|</span>
+                        <span class="logo-subtitle">Live</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- Session Details -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Session Info</div>
+                    <div class="system-card" style="margin-top: 5px;">
+                        <div class="system-row">
+                            <span class="system-label">Host</span>
+                            <span class="system-value" id="hostName">Loading...</span>
+                        </div>
+                        <div class="system-row">
+                            <span class="system-label">Status</span>
+                            <span class="system-value" style="color: #ff4757;">
+                                <span class="live-indicator-pulse"></span>LIVE
+                            </span>
+                        </div>
+                        <div class="system-row">
+                            <span class="system-label">Viewers</span>
+                            <span class="system-value" id="viewerCountDisplay">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Viewers List -->
+                <div class="nav-section collapsible" id="viewersSection">
+                    <div class="nav-section-title section-toggle" onclick="toggleSection('viewersSection')">
+                        <div class="section-title-left">
+                            <svg class="collapse-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span>Connected Users</span>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div id="viewersList" class="sessions-list">
+                            <!-- Populated by JS -->
+                            <div class="no-sessions">Waiting for viewers...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permission Controls (Only visible to host/admin technically, but we show status here) -->
+                <div class="nav-section collapsible" id="permissionsSection">
+                    <div class="nav-section-title section-toggle" onclick="toggleSection('permissionsSection')">
+                        <div class="section-title-left">
+                            <svg class="collapse-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span>Permissions</span>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="security-settings" id="permissionControls">
+                            <div class="setting-row">
+                                <span class="setting-label">Your Role</span>
+                                <span class="setting-value" id="userRole">Viewer</span>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">Access</span>
+                                <span class="setting-value permission-badge" id="accessLevel">Read Only</span>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">Mode</span>
+                                <span class="setting-value" id="sessionMode">-</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account -->
+                <div class="nav-section collapsible" id="accountSection">
+                    <div class="nav-section-title section-toggle" onclick="toggleSection('accountSection')">
+                        <div class="section-title-left">
+                            <svg class="collapse-icon" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span>Account</span>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="security-settings">
+                            <div class="setting-row">
+                                <span class="setting-label">User</span>
+                                <span class="setting-value" id="currentUser">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-indicator" id="connectionIndicator">
+                    <span class="indicator-dot"></span>
+                    <span class="indicator-text">Connecting...</span>
+                </div>
+                <!-- Copy Link Button -->
+                <button class="btn-icon-sm" onclick="copyShareLink()" title="Copy Share Link"
+                    style="margin-left: auto; margin-right: 15px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Terminal Header -->
+            <header class="terminal-header">
+                <div class="window-controls">
+                    <button class="control-btn close" title="Close"><svg viewBox="0 0 12 12">
+                            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg></button>
+                    <button class="control-btn minimize" title="Minimize"><svg viewBox="0 0 12 12">
+                            <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg></button>
+                    <button class="control-btn maximize" title="Maximize"><svg viewBox="0 0 12 12">
+                            <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"
+                                rx="1" />
+                        </svg></button>
+                </div>
+
+                <div class="terminal-title">
+                    <span class="title-icon">
+                        <span class="header-prompt">>_</span>
+                    </span>
+                    <span class="title-text" id="headerTitle">Live Session</span>
+                    <span class="title-mode" style="border-color: #ff4757; color: #ff4757;">LIVE</span>
+                </div>
+
+                <div class="header-actions">
+                    <button class="action-btn" onclick="copySelection()" title="Copy"><svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg></button>
+                    <button class="action-btn" onclick="toggleFullscreen()" title="Fullscreen"><svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+                        </svg></button>
+                </div>
+            </header>
+
+            <!-- Terminal Body -->
+            <div class="terminal-body" id="terminalBody"></div>
+
+            <footer class="status-bar">
+                <div class="status-left">
+                    <div class="recording-indicator" style="display: flex;">
+                        <span class="rec-dot"></span>
+                        <span class="rec-text">LIVE</span>
+                    </div>
+                </div>
+                <div class="status-right">
+                    <span class="status-item cyh-badge">canyouhack.org</span>
+                    <span class="status-separator">│</span>
+                    <span class="status-item" id="wsStatus">Connecting...</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Script Logic for Live Session -->
+    <script>
+        // Toggle Sections
+        function toggleSection(id) {
+            document.getElementById(id).classList.toggle('collapsed');
+        }
+
+        function copyShareLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Link copied to clipboard!'); // Could use a toast
+            });
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function copySelection() {
+            const selection = terminal.getSelection();
+            if (selection) {
+                navigator.clipboard.writeText(selection);
+            }
+        }
+
+        // --- Live Terminal Logic ---
+
+        const terminal = new Terminal({
+            cursorBlink: false,
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            fontSize: 14,
+            theme: {
+                background: '#0a0c0f',
+                foreground: '#e8e8e8',
+                cursor: '#7FFF00',
+                selectionBackground: 'rgba(127, 255, 0, 0.25)',
+                black: '#0a0c0f',
+                red: '#ff4757',
+                green: '#7FFF00',
+                yellow: '#ffd000',
+                blue: '#00d9ff',
+                magenta: '#a855f7',
+                cyan: '#00e5cc',
+                white: '#c4c4c4',
+                brightBlack: '#505050',
+                brightRed: '#ff6b7a',
+                brightGreen: '#9fff40',
+                brightYellow: '#ffe34d',
+                brightBlue: '#4de5ff',
+                brightMagenta: '#c084fc',
+                brightCyan: '#33ffdd',
+                brightWhite: '#ffffff'
+            },
+            allowTransparency: true
+        });
+
+        const fitAddon = new FitAddon.FitAddon();
+        const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+
+        terminal.loadAddon(fitAddon);
+        terminal.loadAddon(webLinksAddon);
+        terminal.open(document.getElementById('terminalBody'));
+
+        // Initial fit
+        setTimeout(() => fitAddon.fit(), 100);
+        window.addEventListener('resize', () => fitAddon.fit());
+
+        // Get Token
+        const path = window.location.pathname;
+        const token = path.split('/live/')[1];
+
+        let socket;
+        let canWrite = false;
+        let connectionId = 0;
+
+        async function init() {
+            try {
+                // Fetch Session Info
+                const r = await fetch(`/api/live/${token}`);
+                if (!r.ok) throw new Error('Session not found');
+                const info = await r.json();
+
+                document.getElementById('headerTitle').textContent = `Live: ${info.name}`;
+                document.getElementById('hostName').textContent = info.owner || 'Unknown';
+                document.getElementById('viewerCountDisplay').textContent = info.viewer_count || 0;
+
+                // Set initial mode
+                const modeMap = {
+                    'view_only': 'View Only',
+                    'shared_control': 'Shared Control',
+                    'instructor': 'Instructor'
+                };
+                document.getElementById('sessionMode').textContent = modeMap[info.permission_mode] || info.permission_mode;
+
+                // Also check auth status for "Account" section
+                checkAuth();
+
+                connectWs();
+            } catch (e) {
+                terminal.write(`\x1b[31mError: ${e.message}\x1b[0m`);
+                document.getElementById('wsStatus').textContent = 'Error';
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/status');
+                const data = await res.json();
+                if (data.logged_in) {
+                    document.getElementById('currentUser').textContent = data.username;
+                } else {
+                    document.getElementById('accountSection').style.display = 'none';
+                }
+            } catch (e) { }
+        }
+
+        function connectWs() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/live?token=${token}`;
+
+            document.getElementById('connectionIndicator').className = 'connection-indicator connecting';
+            document.querySelector('#connectionIndicator .indicator-text').textContent = 'Connecting...';
+            document.getElementById('wsStatus').textContent = 'Connecting...';
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                document.getElementById('connectionIndicator').className = 'connection-indicator connected';
+                document.querySelector('#connectionIndicator .indicator-text').textContent = 'Connected';
+                document.getElementById('wsStatus').textContent = 'Connected';
+
+                terminal.write('\x1b[32m>>> Connected to live session <<<\x1b[0m\r\n');
+                fitAddon.fit();
+            };
+
+            socket.onmessage = (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    handleMessage(msg);
+                } catch (err) { }
+            };
+
+            socket.onclose = () => {
+                document.getElementById('connectionIndicator').className = 'connection-indicator disconnected';
+                document.querySelector('#connectionIndicator .indicator-text').textContent = 'Disconnected';
+                document.getElementById('wsStatus').textContent = 'Disconnected';
+                terminal.write('\r\n\x1b[31m>>> Connection closed <<<\x1b[0m\r\n');
+            };
+        }
+
+        function updateUIState(isWriter) {
+            const roleEl = document.getElementById('userRole');
+            const accessEl = document.getElementById('accessLevel');
+
+            if (isWriter) {
+                roleEl.textContent = 'Collaborator';
+                roleEl.style.color = '#7FFF00';
+                accessEl.textContent = 'Full Control';
+                accessEl.style.borderColor = '#7FFF00';
+                accessEl.style.background = 'rgba(127, 255, 0, 0.15)';
+                accessEl.style.color = '#7FFF00';
+                terminal.setOption('cursorBlink', true);
+            } else {
+                roleEl.textContent = 'Viewer';
+                roleEl.style.color = 'var(--text-muted)';
+                accessEl.textContent = 'Read Only';
+                accessEl.style.borderColor = 'rgba(127, 255, 0, 0.2)';
+                accessEl.style.background = 'rgba(127, 255, 0, 0.05)';
+                accessEl.style.color = 'var(--text-muted)';
+                terminal.setOption('cursorBlink', false);
+            }
+        }
+
+        function handleMessage(msg) {
+            switch (msg.type) {
+                case 'output':
+                    terminal.write(msg.data);
+                    break;
+                case 'viewer_count':
+                    document.getElementById('viewerCountDisplay').textContent = msg.data;
+                    break;
+                case 'viewer_join':
+                case 'viewer_leave':
+                    if (msg.data.count) document.getElementById('viewerCountDisplay').textContent = msg.data.count;
+                    updateViewersList(msg.data.username, msg.type);
+                    break;
+                case 'permission_grant':
+                    canWrite = true;
+                    updateUIState(true);
+                    break;
+                case 'permission_deny':
+                    canWrite = false;
+                    updateUIState(false);
+                    break;
+                case 'permission_mode_change':
+                    const mode = msg.data.mode;
+                    const modeMap = {
+                        'view_only': 'View Only',
+                        'shared_control': 'Shared Control',
+                        'instructor': 'Instructor'
+                    };
+                    document.getElementById('sessionMode').textContent = modeMap[mode] || mode;
+
+                    // Update local permission state based on mode
+                    if (mode === 'shared_control') {
+                        canWrite = true;
+                        updateUIState(true);
+                    } else if (mode === 'view_only') {
+                        canWrite = false;
+                        updateUIState(false);
+                    }
+                    // Instructor mode doesn't auto-grant/revoke here, waits for explicit grant/deny msg usually.
+                    // But strictly speaking, mode change to instructor revokes verify-all.
+                    // Let's assume instructor mode revokes everyone initially.
+                    if (mode === 'instructor') {
+                        canWrite = false;
+                        updateUIState(false);
+                    }
+                    break;
+            }
+        }
+
+
+
+        function updateViewersList(username, type) {
+            const list = document.getElementById('viewersList');
+            // Simplified logic: Append/Remove. Real impl might need full list from server
+            // For now, let's just show a log in the list
+            const item = document.createElement('div');
+            item.className = 'viewer-item';
+            item.innerHTML = `
+                <div class="viewer-avatar">${(username || '?')[0].toUpperCase()}</div>
+                <div class="viewer-info">
+                    <div>${username || 'Guest'}</div>
+                    <div class="viewer-role">${type === 'viewer_join' ? 'Joined' : 'Left'}</div>
+                </div>
+            `;
+            list.prepend(item);
+        }
+
+        terminal.onData(data => {
+            if (canWrite && socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ type: 'input', data: data }));
+            }
+        });
+
+        init();
+
+        // Sidebar Resizer (Simplified)
+        const resizer = document.getElementById('sidebarResizer');
+        const sidebar = document.getElementById('sidebar');
+        resizer.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+            document.body.style.cursor = 'col-resize';
+        });
+        function resize(e) {
+            const width = e.clientX;
+            if (width > 200 && width < 600) {
+                document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+                fitAddon.fit();
+            }
+        }
+        function stopResize() {
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+            document.body.style.cursor = '';
+        }
+    </script>
+</body>
+
+</html>

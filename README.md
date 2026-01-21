@@ -36,6 +36,14 @@ CYH Terminal provides two operating modes:
 | **Local Mode** | Direct access to the host system terminal with full root privileges |
 | **Docker Mode** | Isolated Ubuntu container with pre-installed security tools for safe experimentation |
 
+### Key Features
+
+- 🎥 **Session Recording & Playback** - Record terminal sessions, export as JSON, and replay them
+- 🔧 **Pre-installed Security Tools** - nmap, sqlmap, hydra, nikto ready to use
+- 🔄 **One-click Mode Switch** - Switch between local and Docker environments instantly
+- 📱 **Mobile-friendly** - Works on phones and tablets, add to home screen as PWA
+- 🖥️ **Cross-platform** - Runs on Linux, macOS, and Windows
+
 **Tech Stack:**
 - Backend: Go 1.21+
 - Frontend: Vanilla JavaScript with xterm.js
@@ -335,6 +343,49 @@ docker build -t cyh-terminal .
 **Add to Home Screen:**
 - iOS: Safari > Share > Add to Home Screen
 - Android: Chrome > Menu > Add to Home Screen
+
+---
+
+## Session Recording
+
+CYH Terminal allows you to record, export, and replay terminal sessions.
+
+### Recording Controls
+
+| Button | Function |
+|--------|----------|
+| ⏺️ | Start/Stop recording |
+| ⬇️ | Export recording as JSON file |
+| ⬆️ | Import recording from JSON file |
+| ▶️ | Play/Pause recording playback |
+
+### Usage
+
+1. **Start Recording**: Click the red circle button in the header
+2. **Work in Terminal**: Execute your commands as normal
+3. **Stop Recording**: Click the button again to stop
+4. **Export**: Click the download button to save as `.json` file
+5. **Playback**: Import a recording and click play to replay
+
+### Recording Format
+
+Sessions are saved as JSON with timestamps:
+
+```json
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Session 2026-01-20",
+    "mode": "docker",
+    "recordedAt": "2026-01-20T21:00:00Z",
+    "duration": 120000
+  },
+  "events": [
+    { "t": 0, "type": "output", "data": "$ " },
+    { "t": 1500, "type": "output", "data": "nmap" }
+  ]
+}
+```
 
 ---
 

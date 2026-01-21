@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CYH Terminal - Sign Up">
+    <meta name="theme-color" content="#7FFF00">
+    <title>Sign Up | CYH Terminal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, #0a0c0f 0%, #0d1117 50%, #0a0c0f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e8e8e8;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(127, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(127, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        .signup-container {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        .signup-card {
+            background: rgba(13, 17, 23, 0.95);
+            border: 1px solid rgba(127, 255, 0, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(127, 255, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, rgba(127, 255, 0, 0.2), rgba(127, 255, 0, 0.05));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(127, 255, 0, 0.3);
+        }
+
+        .logo-icon img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #7FFF00;
+            text-shadow: 0 0 20px rgba(127, 255, 0, 0.5);
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: #888;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(127, 255, 0, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #7FFF00;
+            box-shadow: 0 0 0 3px rgba(127, 255, 0, 0.1), 0 0 20px rgba(127, 255, 0, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #555;
+        }
+
+        .form-input.error {
+            border-color: #ff4757;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #7FFF00, #5bc500);
+            border: none;
+            border-radius: 10px;
+            color: #0a0c0f;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(127, 255, 0, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: #ff4757;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: rgba(127, 255, 0, 0.1);
+            border: 1px solid rgba(127, 255, 0, 0.3);
+            color: #7FFF00;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(127, 255, 0, 0.1);
+        }
+
+        .links a {
+            color: #7FFF00;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .links a:hover {
+            text-shadow: 0 0 10px rgba(127, 255, 0, 0.5);
+        }
+
+        .glow-orb {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .glow-orb.green {
+            background: #7FFF00;
+            top: -100px;
+            left: -100px;
+        }
+
+        .glow-orb.purple {
+            background: #a855f7;
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .password-requirements {
+            font-size: 11px;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        .prompt {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #555;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .prompt .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: #7FFF00;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow-orb green"></div>
+    <div class="glow-orb purple"></div>
+
+    <div class="signup-container">
+        <div class="signup-card">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="favicon.ico" alt="CYH">
+                </div>
+                <div class="logo-text">CYH Terminal</div>
+                <div class="logo-subtitle">Create Account</div>
+            </div>
+
+            <h1>>_ Sign Up</h1>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="signupForm">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="username" placeholder="Choose a username" required
+                        autocomplete="username" minlength="3">
+                    <div class="password-requirements">Minimum 3 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="password" placeholder="Create a password" required
+                        autocomplete="new-password" minlength="4">
+                    <div class="password-requirements">Minimum 4 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm your password"
+                        required autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn-primary" id="signupBtn">Create Account</button>
+            </form>
+
+            <div class="links">
+                <span style="color: #555;">Already have an account?</span>
+                <a href="login.html">Login</a>
+            </div>
+
+            <div class="prompt">
+                cyh@terminal:~$ sudo adduser <span class="cursor"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        fetch('/api/auth/status')
+            .then(r => r.json())
+            .then(data => {
+                if (data.logged_in) {
+                    window.location.href = '/';
+                }
+            });
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('signupBtn');
+            const error = document.getElementById('errorMessage');
+            const success = document.getElementById('successMessage');
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            error.classList.remove('show');
+            success.classList.remove('show');
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                error.textContent = 'Passwords do not match';
+                error.classList.add('show');
+                document.getElementById('confirmPassword').classList.add('error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    success.textContent = 'Account created! Redirecting...';
+                    success.classList.add('show');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    error.textContent = data.error || 'Failed to create account';
+                    error.classList.add('show');
+                }
+            } catch (err) {
+                error.textContent = 'Connection error. Please try again.';
+                error.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        });
+
+        // Remove error class on input
+        document.getElementById('confirmPassword').addEventListener('input', function () {
+            this.classList.remove('error');
+        });
+    </script>
+</body>
+
+</html>

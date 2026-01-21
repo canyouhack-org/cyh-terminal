@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	HistoryFileName = "history.json"
 	MaxHistoryItems = 500
 )
 
@@ -20,14 +19,21 @@ type CommandEntry struct {
 	Mode      string    `json:"mode"`
 }
 
-// CommandHistory manages persistent command history
-type CommandHistory struct {
-	mu       sync.RWMutex
+// UserHistory manages per-user command history
+type UserHistory struct {
 	Commands []CommandEntry `json:"commands"`
-	filePath string
 }
 
-var cmdHistory = &CommandHistory{}
+// CommandHistory manages persistent command history for all users
+type CommandHistory struct {
+	mu       sync.RWMutex
+	users    map[string]*UserHistory // username -> history
+	dataDir  string
+}
+
+var cmdHistory = &CommandHistory{
+	users: make(map[string]*UserHistory),
+}
 
 // getHistoryDir returns the directory for storing history
 func getHistoryDir() string {
@@ -43,50 +49,76 @@ func (h *CommandHistory) Init() error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	dir := getHistoryDir()
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	h.dataDir = getHistoryDir()
+	if err := os.MkdirAll(h.dataDir, 0755); err != nil {
 		return err
 	}
 
-	h.filePath = filepath.Join(dir, HistoryFileName)
-	h.Commands = []CommandEntry{}
+	// Also create users directory
+	usersDir := filepath.Join(h.dataDir, "users")
+	if err := os.MkdirAll(usersDir, 0755); err != nil {
+		return err
+	}
 
-	// Load existing history
-	return h.loadFromFile()
+	return nil
 }
 
-// loadFromFile loads history from disk
-func (h *CommandHistory) loadFromFile() error {
-	data, err := os.ReadFile(h.filePath)
+// getUserHistoryPath returns the file path for a user's history
+func (h *CommandHistory) getUserHistoryPath(username string) string {
+	if username == "" {
+		username = "_anonymous"
+	}
+	return filepath.Join(h.dataDir, "users", username+"_history.json")
+}
+
+// loadUserHistory loads history for a specific user
+func (h *CommandHistory) loadUserHistory(username string) *UserHistory {
+	if uh, exists := h.users[username]; exists {
+		return uh
+	}
+
+	uh := &UserHistory{
+		Commands: []CommandEntry{},
+	}
+
+	filePath := h.getUserHistoryPath(username)
+	data, err := os.ReadFile(filePath)
+	if err == nil {
+		json.Unmarshal(data, &uh.Commands)
+	}
+
+	h.users[username] = uh
+	return uh
+}
+
+// saveUserHistory saves history for a specific user
+func (h *CommandHistory) saveUserHistory(username string) error {
+	uh := h.users[username]
+	if uh == nil {
+		return nil
+	}
+
+	data, err := json.MarshalIndent(uh.Commands, "", "  ")
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil // No history yet
-		}
 		return err
 	}
 
-	return json.Unmarshal(data, &h.Commands)
+	return os.WriteFile(h.getUserHistoryPath(username), data, 0644)
 }
 
-// saveToFile saves history to disk
-func (h *CommandHistory) saveToFile() error {
-	data, err := json.MarshalIndent(h.Commands, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(h.filePath, data, 0644)
-}
-
-// AddCommand adds a new command to history
-func (h *CommandHistory) AddCommand(mode, command string) error {
+// AddCommand adds a new command to a user's history
+func (h *CommandHistory) AddCommand(username, mode, command string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	// Don't add empty or duplicate consecutive commands
 	if command == "" {
 		return nil
 	}
-	if len(h.Commands) > 0 && h.Commands[len(h.Commands)-1].Command == command {
+
+	uh := h.loadUserHistory(username)
+
+	// Don't add duplicate consecutive commands
+	if len(uh.Commands) > 0 && uh.Commands[len(uh.Commands)-1].Command == command {
 		return nil
 	}
 
@@ -96,27 +128,29 @@ func (h *CommandHistory) AddCommand(mode, command string) error {
 		Mode:      mode,
 	}
 
-	h.Commands = append(h.Commands, entry)
+	uh.Commands = append(uh.Commands, entry)
 
 	// Trim if too many
-	if len(h.Commands) > MaxHistoryItems {
-		h.Commands = h.Commands[len(h.Commands)-MaxHistoryItems:]
+	if len(uh.Commands) > MaxHistoryItems {
+		uh.Commands = uh.Commands[len(uh.Commands)-MaxHistoryItems:]
 	}
 
-	return h.saveToFile()
+	return h.saveUserHistory(username)
 }
 
-// GetHistory returns commands for a specific mode
-func (h *CommandHistory) GetHistory(mode string) []CommandEntry {
+// GetHistory returns commands for a specific user and mode
+func (h *CommandHistory) GetHistory(username, mode string) []CommandEntry {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
+	uh := h.loadUserHistory(username)
+
 	if mode == "" {
-		return h.Commands
+		return uh.Commands
 	}
 
 	var filtered []CommandEntry
-	for _, cmd := range h.Commands {
+	for _, cmd := range uh.Commands {
 		if cmd.Mode == mode {
 			filtered = append(filtered, cmd)
 		}
@@ -124,22 +158,24 @@ func (h *CommandHistory) GetHistory(mode string) []CommandEntry {
 	return filtered
 }
 
-// ClearHistory clears all history
-func (h *CommandHistory) ClearHistory(mode string) error {
+// ClearHistory clears history for a specific user
+func (h *CommandHistory) ClearHistory(username, mode string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
+	uh := h.loadUserHistory(username)
+
 	if mode == "" {
-		h.Commands = []CommandEntry{}
+		uh.Commands = []CommandEntry{}
 	} else {
 		var kept []CommandEntry
-		for _, cmd := range h.Commands {
+		for _, cmd := range uh.Commands {
 			if cmd.Mode != mode {
 				kept = append(kept, cmd)
 			}
 		}
-		h.Commands = kept
+		uh.Commands = kept
 	}
 
-	return h.saveToFile()
+	return h.saveUserHistory(username)
 }

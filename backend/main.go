@@ -51,7 +51,16 @@ type HistoryRequest struct {
 // handleHistoryGet returns command history
 func handleHistoryGet(w http.ResponseWriter, r *http.Request) {
 	mode := r.URL.Query().Get("mode")
-	history := cmdHistory.GetHistory(mode)
+	
+	// Get username from session
+	username := ""
+	if cookie, err := r.Cookie("cyh_session"); err == nil {
+		if user, valid := authManager.ValidateSession(cookie.Value); valid {
+			username = user
+		}
+	}
+	
+	history := cmdHistory.GetHistory(username, mode)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(history)
@@ -70,7 +79,15 @@ func handleHistorySave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := cmdHistory.AddCommand(req.Mode, req.Command); err != nil {
+	// Get username from session
+	username := ""
+	if cookie, err := r.Cookie("cyh_session"); err == nil {
+		if user, valid := authManager.ValidateSession(cookie.Value); valid {
+			username = user
+		}
+	}
+
+	if err := cmdHistory.AddCommand(username, req.Mode, req.Command); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -87,7 +104,16 @@ func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mode := r.URL.Query().Get("mode")
-	if err := cmdHistory.ClearHistory(mode); err != nil {
+	
+	// Get username from session
+	username := ""
+	if cookie, err := r.Cookie("cyh_session"); err == nil {
+		if user, valid := authManager.ValidateSession(cookie.Value); valid {
+			username = user
+		}
+	}
+	
+	if err := cmdHistory.ClearHistory(username, mode); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -164,12 +190,26 @@ func handleDockerRebuild(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// List all containers
+// List all containers (filtered by user)
 func handleContainerList(w http.ResponseWriter, r *http.Request) {
 	if !CheckDockerInstalled() {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode([]ContainerInfo{})
 		return
+	}
+
+	// Get username from session
+	username := ""
+	if cookie, err := r.Cookie("cyh_session"); err == nil {
+		if user, valid := authManager.ValidateSession(cookie.Value); valid {
+			username = user
+		}
+	}
+
+	// Prefix for user's containers: cyh_username_
+	userPrefix := "cyh_" + username + "_"
+	if username == "" {
+		userPrefix = "cyh__" // anonymous users
 	}
 
 	// Get all containers (running and stopped)
@@ -188,13 +228,23 @@ func handleContainerList(w http.ResponseWriter, r *http.Request) {
 		}
 		parts := strings.Split(line, "|")
 		if len(parts) >= 5 {
+			containerName := parts[1]
+			
+			// Only show containers that belong to this user (have user prefix)
+			if !strings.HasPrefix(containerName, userPrefix) {
+				continue
+			}
+			
+			// Remove prefix for display
+			displayName := strings.TrimPrefix(containerName, userPrefix)
+			
 			ports := ""
 			if len(parts) >= 6 {
 				ports = parts[5]
 			}
 			containers = append(containers, ContainerInfo{
 				ID:      parts[0],
-				Name:    parts[1],
+				Name:    displayName,
 				Image:   parts[2],
 				Status:  parts[3],
 				Created: parts[4],
@@ -300,11 +350,19 @@ func handleContainerDelete(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "deleted", "container_id": req.ContainerID})
 }
 
-// Create a new container from the Ubuntu image
+// Create a new container from the Ubuntu image (user-specific)
 func handleContainerCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
+	}
+
+	// Get username from session
+	username := ""
+	if cookie, err := r.Cookie("cyh_session"); err == nil {
+		if user, valid := authManager.ValidateSession(cookie.Value); valid {
+			username = user
+		}
 	}
 
 	var req struct {
@@ -315,9 +373,14 @@ func handleContainerCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" {
-		req.Name = "ubuntu-terminal-" + time.Now().Format("20060102-150405")
+	// Generate display name if empty
+	displayName := req.Name
+	if displayName == "" {
+		displayName = "terminal-" + time.Now().Format("20060102-150405")
 	}
+
+	// Add user prefix to actual container name
+	containerName := "cyh_" + username + "_" + displayName
 
 	// Check if image exists
 	if !dockerMgr.IsDockerImageBuilt() {
@@ -329,7 +392,7 @@ func handleContainerCreate(w http.ResponseWriter, r *http.Request) {
 
 	cmd := exec.Command("docker", "run",
 		"-d",
-		"--name", req.Name,
+		"--name", containerName,
 		"--hostname", "canyouhack",
 		"-e", "TERM=xterm-256color",
 		"-e", "COLORTERM=truecolor",
@@ -356,7 +419,7 @@ func handleContainerCreate(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"status":       "created",
 		"container_id": containerID,
-		"name":         req.Name,
+		"name":         displayName,
 	})
 }
 
@@ -408,8 +471,29 @@ func main() {
 	mux.HandleFunc("/api/history/save", handleHistorySave)
 	mux.HandleFunc("/api/history/clear", handleHistoryClear)
 
+	// Authentication endpoints
+	mux.HandleFunc("/api/auth/login", handleAuthLogin)
+	mux.HandleFunc("/api/auth/signup", handleAuthSignup)
+	mux.HandleFunc("/api/auth/logout", handleAuthLogout)
+	mux.HandleFunc("/api/auth/status", handleAuthStatus)
+	mux.HandleFunc("/api/auth/settings", handleAuthSettings)
+
 	// Terminal WebSocket endpoint
 	mux.HandleFunc("/ws/terminal", handleTerminal)
+
+	// Session management endpoints
+	mux.HandleFunc("/api/sessions", handleSessions)
+	mux.HandleFunc("/api/sessions/last", handleSessionLast)
+	mux.HandleFunc("/api/sessions/", handleSessionByID)
+
+	// Live collaboration endpoints
+	mux.HandleFunc("/api/live/", handleJoinLiveSession)
+	mux.HandleFunc("/ws/live", handleLiveWebSocket)
+
+	// Live viewer page route (serves live.html)
+	mux.HandleFunc("/live/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "../frontend/live.html")
+	})
 
 	// Health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -425,7 +509,8 @@ func main() {
 		AllowCredentials: true,
 	})
 
-	handler := c.Handler(mux)
+	// Apply auth middleware then CORS
+	handler := c.Handler(authMiddleware(mux))
 
 	server := &http.Server{
 		Addr:         ":3333",
@@ -435,10 +520,28 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
+	// Initialize authentication
+	if err := authManager.Init(); err != nil {
+		log.Printf("⚠️  Failed to initialize auth manager: %v", err)
+	}
+
 	// Initialize command history
 	if err := cmdHistory.Init(); err != nil {
 		log.Printf("⚠️  Failed to initialize command history: %v", err)
 	}
+
+	// Initialize session manager
+	var sessErr error
+	sessionMgr, sessErr = NewSessionManager("sessions.db")
+	if sessErr != nil {
+		log.Printf("⚠️  Failed to initialize session manager: %v", sessErr)
+	} else {
+		log.Println("✓ Session manager initialized")
+	}
+
+	// Initialize live hub
+	liveHub = NewLiveHub()
+	log.Println("✓ Live collaboration hub initialized")
 
 	// Initialize Docker in background
 	dockerAvailable := InitializeDocker()

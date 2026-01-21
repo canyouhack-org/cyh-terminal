@@ -12,6 +12,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"strings"
 
 	"github.com/UserExistsError/conpty"
 	"github.com/gorilla/websocket"
@@ -37,6 +38,57 @@ func handleTerminal(w http.ResponseWriter, r *http.Request) {
 
 	var cmdLine string
 	var cwd string
+
+	// Get username from session cookie
+	username := "guest"
+	if cookie, err := r.Cookie("cyh_session"); err == nil {
+		if user, valid := authManager.ValidateSession(cookie.Value); valid {
+			username = user
+		}
+	}
+
+	// Active Session Management (Auto-Create)
+	activeSessID := r.URL.Query().Get("session_id")
+	var session *TermSession // Keep logic structure consistent
+
+	if activeSessID != "" {
+		// Try to resume existing session
+		s, err := sessionMgr.GetSession(activeSessID)
+		if err != nil {
+			log.Printf("Failed to resume session %s: %v", activeSessID, err)
+			activeSessID = "" // Create new if not found
+		} else {
+			session = s
+			// Resuming - verify ownership
+			if session.User != username {
+				activeSessID = "" // Create new if owner mismatch
+			}
+		}
+	}
+
+	if activeSessID == "" {
+		// Auto-create new session
+		sessName := "Terminal " + time.Now().Format("15:04:05")
+		s, err := sessionMgr.CreateSession(username, sessName, mode)
+		if err != nil {
+			log.Printf("Failed to create session: %v", err)
+		} else {
+			session = s
+			activeSessID = session.ID
+			// Notify client about new session ID
+			conn.WriteJSON(map[string]interface{}{
+				"type": "session_id",
+				"data": activeSessID,
+			})
+		}
+	} else {
+		log.Printf("Resuming session: %s", activeSessID)
+		// Notify client about resumed session ID
+		conn.WriteJSON(map[string]interface{}{
+			"type": "session_id",
+			"data": activeSessID,
+		})
+	}
 
 	// Prepare command line
 	if mode == "docker" && dockerMgr.IsReady() {
@@ -110,6 +162,15 @@ func handleTerminal(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					return
 				}
+				
+				// Record event and Broadcast Live
+				if activeSessID != "" {
+					// Async record
+					go sessionMgr.AddEvent(activeSessID, "output", string(buf[:n]))
+					
+					// Broadcast to live hub (Unconditional for dynamic sharing)
+					liveHub.BroadcastOutput(activeSessID, string(buf[:n]))
+				}
 			}
 		}
 	}()
@@ -136,11 +197,21 @@ func handleTerminal(w http.ResponseWriter, r *http.Request) {
 							cols, _ := sizeData["cols"].(float64)
 							if rows > 0 && cols > 0 {
 								cpty.Resize(int(cols), int(rows))
+								
+								// Record resize event
+								if activeSessID != "" {
+									go sessionMgr.AddEvent(activeSessID, "resize", string(data))
+								}
 							}
 						}
 						continue
 					}
 				}
+			}
+
+			// Record input event
+			if activeSessID != "" {
+				go sessionMgr.AddEvent(activeSessID, "input", string(data))
 			}
 
 			// Write to ConPTY

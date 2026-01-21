@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CYH Terminal - Professional security terminal by CanYouHack">
     <meta name="theme-color" content="#7FFF00">
-    <title>CYH Terminal | CanYouHack</title>
+    <title>CYH Terminal | Session</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,7 +57,7 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Terminal Mode</div>
                     <div class="mode-selector" id="modeSelector">
-                        <button class="mode-btn active" data-mode="local" id="localModeBtn">
+                        <button class="mode-btn" data-mode="local" id="localModeBtn">
                             <span class="mode-icon">
                                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -71,7 +71,7 @@
                             </div>
                             <span class="mode-status available"></span>
                         </button>
-                        <button class="mode-btn" data-mode="docker" id="dockerModeBtn">
+                        <button class="mode-btn active" data-mode="docker" id="dockerModeBtn">
                             <span class="mode-icon">
                                 <!-- CYH Logo -->
                                 <img src="https://canyouhack.org/logo.png" alt="CYH" width="24" height="24"
@@ -149,7 +149,13 @@
                         <!-- Live Viewers Card -->
                         <div id="liveViewersCard" class="live-viewers-card" style="display: none;">
                             <div class="viewers-header">
-                                <span class="viewers-icon">👁</span>
+                                <span class="viewers-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="16" height="16">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </span>
                                 <span class="viewers-count" id="viewerCount">0</span>
                                 <span class="viewers-label">watching</span>
                             </div>
@@ -161,14 +167,23 @@
                                     <option value="shared_control">Shared Control</option>
                                 </select>
                             </div>
-                            <button class="btn-copy-link" onclick="copyShareLink()">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
-                                    height="14">
-                                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
-                                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
-                                </svg>
-                                Copy Share Link
-                            </button>
+                            <div class="live-actions-row">
+                                <button class="btn-copy-link" onclick="copyShareLink()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="14" height="14">
+                                        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
+                                        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
+                                    </svg>
+                                    Copy Link
+                                </button>
+                                <button class="btn-stop-sharing" onclick="stopSharing()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="14" height="14">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    </svg>
+                                    Stop
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Session History List -->
@@ -274,6 +289,7 @@
                     <span id="currentModeText">CYH Local</span>
                 </div>
             </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
         </aside>
 
         <!-- Main Content -->
@@ -425,6 +441,9 @@
     </div>
 
     <script>
+        window.isSessionView = true;
+        const isSessionView = true; // Keep local const for backward compatibility just in case
+
         // Toggle collapsible sections
         function toggleSection(sectionId) {
             const section = document.getElementById(sectionId);
