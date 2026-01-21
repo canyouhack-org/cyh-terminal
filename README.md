@@ -438,48 +438,6 @@ Sessions are saved as JSON with timestamps:
 
 ---
 
-## Project Structure
-
-```
-cyh-terminal/
-├── backend/
-│   ├── main.go                 # HTTP server and routes
-│   ├── terminal_handler.go     # WebSocket PTY handler
-│   ├── docker_manager.go       # Docker container management
-│   ├── command_history.go      # Command history persistence
-│   └── terminal-server         # Compiled binary
-│
-├── frontend/
-│   ├── index.html              # Main page
-│   ├── styles.css              # Stylesheet
-│   ├── terminal.js             # xterm.js integration
-│   └── favicon.ico             # Icon
-│
-├── docker/
-│   └── Dockerfile              # Security tools container
-│
-├── scripts/
-│   ├── install.sh              # Universal Linux installer
-│   ├── install-ubuntu.sh       # Ubuntu/Debian installer
-│   ├── install-fedora.sh       # Fedora/RHEL installer
-│   ├── install-macos.sh        # macOS installer
-│   ├── install.ps1             # Windows PowerShell installer
-│   ├── install.bat             # Windows CMD installer
-│   ├── start.sh                # Linux start script
-│   ├── stop.sh                 # Linux stop script
-│   ├── start-macos.sh          # macOS start script
-│   ├── stop-macos.sh           # macOS stop script
-│   ├── start.bat               # Windows start script
-│   ├── stop.bat                # Windows stop script
-│   ├── start-hidden.vbs        # Windows background launcher
-│   ├── autostart.ps1           # Windows auto-start setup
-│   └── cyh-terminal.service    # Linux systemd service
-│
-└── README.md
-```
-
----
-
 ## Troubleshooting
 
 ### Port 3333 is already in use
