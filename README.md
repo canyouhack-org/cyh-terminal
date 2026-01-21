@@ -19,7 +19,6 @@ A browser-based terminal emulator with dual-mode support: direct system access a
 - [Auto-Start Configuration](#auto-start-configuration)
 - [Docker Mode](#docker-mode)
 - [Mobile Access](#mobile-access)
-- [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
