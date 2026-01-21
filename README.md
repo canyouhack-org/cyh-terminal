@@ -23,6 +23,9 @@ A browser-based terminal emulator with dual-mode support: direct system access a
 - [License](#license)
 
 ---
+## CYH Terminal
+![Logo](logo.png)
+
 
 ## Overview
 
