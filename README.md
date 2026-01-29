@@ -81,7 +81,7 @@ CYH Terminal provides two operating modes:
 
 ```bash
 # Clone the repository
-git clone https://github.com/canyouhack/cyh-terminal.git
+git clone https://github.com/canyouhack-org/cyh-terminal.git
 cd cyh-terminal
 
 # Run the installation script
@@ -113,7 +113,7 @@ go build -o terminal-server .
 
 ```bash
 # Clone the repository
-git clone https://github.com/canyouhack/cyh-terminal.git
+git clone https://github.com/canyouhack-org/cyh-terminal.git
 cd cyh-terminal
 
 # Run the installation script
@@ -146,7 +146,7 @@ go build -o terminal-server .
 
 ```bash
 # Clone the repository
-git clone https://github.com/canyouhack/cyh-terminal.git
+git clone https://github.com/canyouhack-org/cyh-terminal.git
 cd cyh-terminal
 
 # Run the installation script
@@ -189,7 +189,7 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocola
 choco install golang docker-desktop git -y
 
 # Clone and build
-git clone https://github.com/canyouhack/cyh-terminal.git
+git clone https://github.com/canyouhack-org/cyh-terminal.git
 cd cyh-terminal\backend
 go mod tidy
 go build -o terminal-server.exe .
@@ -495,8 +495,8 @@ MIT License
 
 Copyright (c) 2026 CanYouHack
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, includin[...]
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT[...]
